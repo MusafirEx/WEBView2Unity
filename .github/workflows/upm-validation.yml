@@ -1,0 +1,16 @@
+name: UPM Static Validation
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check UPM manifest, asmdefs and native ABI signatures
+        run: python Tests~/validate_package.py
