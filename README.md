@@ -1,53 +1,41 @@
 # WEBView2Unity
 
-Experimental **Chromium Embedded Framework (CEF)** web browser for Unity by MusafirEx. Our first target is a **dockable Unity Editor browser** on Windows x64 / Unity 2022.3 LTS. A shared C# runtime surface is included for a later in-game browser.
+**Unity 2022.3 LTS — Windows x64 browser plugin**, by MusafirEx. Primary target: a browser docked in the Unity Editor. Shared C# API lays groundwork for a future Game Runtime browser.
 
-> **Status — v0.1.0 source prototype, NOT a working embedded browser release.** The UPM package provides the Editor menu, URL handling and external browser fallback. The native CEF bridge is provided as **uncompiled C++ source**. It requires a compatible CEF SDK, a native build, deployment and on-machine Unity testing before embedded pages can display.
+> v0.1.0: Experimental source prototype. The Editor UI / external browser fallback exist, but CEF native executables are NOT shipped with the UPM package. Embedded web rendering is not yet validated.
 
-## Unity Package Manager (Git URL)
+## Install via UPM
 
-Open **Window > Package Manager > + > Add package from git URL**, then enter:
+Add from Git URL:
 
-```text
-https://github.com/MusafirEx/WEBView2Unity.git
-```
+    https://github.com/MusafirEx/WEBView2Unity.git#feature/upm-cef-prototype
 
-Or add to `Packages/manifest.json`:
+Use this feature branch until PR #1 is merged: https://github.com/MusafirEx/WEBView2Unity/pull/1
 
-```json
-{
-  "dependencies": {
-    "com.musafirex.webview2unity": "https://github.com/MusafirEx/WEBView2Unity.git"
-  }
-}
-```
+## Test inside Unity
 
-The `package.json` manifest is at the repository root; do not use `?path=`.
+1. Open Window > WEBView2Unity > Browser. External opens your default Windows browser without CEF.
+2. For an EMBEDDED page, obtain a successful build artifact from Actions > Windows CEF Native Prototype, or build the native runtime on Windows:
 
-## Editor
+        .\Native~\Build-Windows.ps1
 
-Open **Window > WEBView2Unity > Browser**. The dockable window includes an address bar, Back, Forward, Refresh and **External** fallback. Embedded rendering requires manually building and installing CEF; see [native setup](Documentation~/NATIVE_SETUP.md).
+3. Choose CEF Runtime Folder: %LOCALAPPDATA%\WEBView2Unity\Runtime, NOT the source ZIP or repository folder.
+4. Enter https://example.com/ and choose Initialize CEF and Open Browser.
 
-## Progress
+See [Native installation and troubleshooting](Documentation~/NATIVE_SETUP.md).
 
-| Capability | Status |
+## Scope and status
+
+| Feature | Status |
 | --- | --- |
-| Root UPM manifest, Runtime & Editor asmdefs | Implemented in source (Unity import test pending) |
-| Editor browser shell + HTTP(S) validation | Implemented in source |
-| CEF off-screen paint C++ bridge and helper exe | Source prototype; native compilation unverified |
-| Mouse/keyboard/scroll forwarding | Source prototype; requires native testing |
-| Embedded web pages in Unity Editor | **Not yet verified or shipped** |
-| In-game Unity Runtime browser UI | Planned, shared API prepared |
-| Tabs, downloads, IME, authentication, file dialogs | Planned |
+| Git UPM manifest and Editor/Runtime asmdefs | Source implemented |
+| Dockable EditorWindow, URL handling and external fallback | Source implemented |
+| Native CEF off-screen bridge + subprocess | Source prototype, Windows compilation pending |
+| PowerShell download/build/stage with checksum verification | Source implemented, Windows test pending |
+| Actual embedded rendering in Unity | NOT VERIFIED |
+| Game Runtime UI | Later |
+| Sandboxing, popups, IME, permissions, authenticated websites | Not implemented |
 
-## Technology
+CEF is an open-source Chromium embedding framework, not Microsoft WebView2. The current native prototype disables Chromium sandbox; do not use sensitive services or untrusted sites.
 
-Unlike Microsoft's proprietary WebView2 runtime, this project targets **Chromium Embedded Framework (CEF)**, an open source Chromium embedding framework. CEF supports off-screen rendering, which can be drawn as a Unity texture. A dedicated subprocess exe avoids launching Unity.exe as a CEF renderer process.
-
-## Security and compatibility
-
-Native engine is experimental. **Do not sign in to sensitive accounts or use untrusted websites until the native implementation is security-reviewed and tested.** Chromium and CEF binary redistributions require compliance with their respective third-party notices. The native engine currently targets Windows x64 only; other targets will require porting.
-
-## Development
-
-Unity 2022.3.22f1 is the initial test target. Contributions via pull requests and GitHub issues are welcome.
+GitHub Actions validates UPM assets and can build the Windows native prototype. Real Unity Editor Windows testing remains necessary.

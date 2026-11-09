@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MusafirEx.WEBView2Unity.Editor
 {
-    /// <summary>Dockable Unity Editor browser; native CEF is an optional manual install.</summary>
+    /// <summary>Dockable Unity Editor browser. Native CEF is installed explicitly.</summary>
     public sealed class WebViewEditorWindow : EditorWindow
     {
         private const string RootPref = "WEBView2Unity.CEFRoot";
@@ -30,7 +30,7 @@ namespace MusafirEx.WEBView2Unity.Editor
         private void OnEnable()
         {
             address = EditorPrefs.GetString(UrlPref, Home);
-            cefRoot = EditorPrefs.GetString(RootPref, string.Empty);
+            cefRoot = EditorPrefs.GetString(RootPref, WebViewEngine.DefaultRuntimeDirectory);
             wantsMouseMove = true;
             EditorApplication.update += UpdateBrowser;
         }
@@ -49,17 +49,19 @@ namespace MusafirEx.WEBView2Unity.Editor
 
         private void UpdateBrowser()
         {
-            if (browser == null) return;
+            if (!WebViewEngine.IsInitialized) return;
             try
             {
+                // Continue pumping CEF even when the browser window has been closed.
+                // CefBrowserHost::CloseBrowser is asynchronous.
                 WebViewEngine.Tick();
-                if (browser.UpdateTexture()) Repaint();
+                if (browser != null && browser.UpdateTexture()) Repaint();
             }
             catch (Exception ex)
             {
                 message = "CEF browser error: " + ex.Message;
                 Debug.LogException(ex);
-                browser.Dispose();
+                if (browser != null) browser.Dispose();
                 browser = null;
                 Repaint();
             }
@@ -97,9 +99,10 @@ namespace MusafirEx.WEBView2Unity.Editor
 
             EditorGUILayout.Space(12);
             EditorGUILayout.HelpBox(
-                "Experimental CEF backend: source is included but native Chromium/CEF " +
-                "binaries are not shipped with this UPM package. The Editor window " +
-                "will not render web pages until a compatible native build is installed.",
+                "The UPM package includes the browser interface, but NOT native CEF binaries. " +
+                "Install the Windows x64 runtime with Native~/Build-Windows.ps1. " +
+                "Select the generated Runtime folder below (not the source ZIP folder). " +
+                "The native prototype is UNSANDBOXED: do not use sensitive accounts.",
                 MessageType.Info);
             EditorGUILayout.LabelField("CEF Runtime Folder (Windows x64)", EditorStyles.boldLabel);
             using (new EditorGUILayout.HorizontalScope())
@@ -107,15 +110,25 @@ namespace MusafirEx.WEBView2Unity.Editor
                 cefRoot = EditorGUILayout.TextField(cefRoot);
                 if (GUILayout.Button("...", GUILayout.Width(30)))
                 {
-                    string selected = EditorUtility.OpenFolderPanel("Select CEF runtime", cefRoot, "");
+                    string selected = EditorUtility.OpenFolderPanel("Select built CEF runtime", cefRoot, "");
                     if (!string.IsNullOrEmpty(selected)) cefRoot = selected;
                 }
+            }
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Use Default Runtime Folder"))
+                    cefRoot = WebViewEngine.DefaultRuntimeDirectory;
+                if (GUILayout.Button("Build Guide"))
+                    Application.OpenURL(
+                        "https://github.com/MusafirEx/WEBView2Unity/blob/feature/upm-cef-prototype/" +
+                        "Documentation~/NATIVE_SETUP.md");
             }
             if (GUILayout.Button("Initialize CEF and Open Browser")) StartBrowser();
             if (GUILayout.Button("Open browser externally (fallback)")) OpenExternal();
             if (!string.IsNullOrEmpty(message)) EditorGUILayout.HelpBox(message, MessageType.Warning);
             EditorGUILayout.Space(8);
-            EditorGUILayout.LabelField("Build instructions: Documentation~/NATIVE_SETUP.md", EditorStyles.miniLabel);
+            EditorGUILayout.LabelField("Build instructions: Documentation~/NATIVE_SETUP.md",
+                EditorStyles.miniLabel);
         }
 
         private void StartBrowser()
