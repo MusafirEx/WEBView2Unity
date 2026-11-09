@@ -1,0 +1,38 @@
+name: Windows CEF Native Prototype
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Native~/**'
+      - 'Runtime/WebViewEngine.cs'
+      - '.github/workflows/cef-native-windows.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-native:
+    name: Build Windows x64 CEF bridge
+    runs-on: windows-2022
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified CEF SDK, compile and stage runtime
+        shell: pwsh
+        run: |
+          & ".\Native~\Build-Windows.ps1" -WorkDirectory "$env:RUNNER_TEMP\CEFCache" -OutputDirectory "$env:GITHUB_WORKSPACE\WEBView2Unity-Runtime"
+      - name: Verify native files
+        shell: pwsh
+        run: |
+          $out = "$env:GITHUB_WORKSPACE\WEBView2Unity-Runtime"
+          foreach ($name in @("libcef.dll", "WEBView2UnityCEF.dll", "WEBView2UnityCEFSubprocess.exe")) {
+            if (-not (Test-Path (Join-Path $out $name))) { throw "Missing: $name" }
+          }
+      - name: Upload unsandboxed prototype only
+        uses: actions/upload-artifact@v4
+        with:
+          name: WEBView2Unity-CEF-Windows-x64-PROTOTYPE
+          path: WEBView2Unity-Runtime/
+          retention-days: 7
+          if-no-files-found: error

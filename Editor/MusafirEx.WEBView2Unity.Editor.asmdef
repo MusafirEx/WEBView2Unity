@@ -1,0 +1,11 @@
+{
+  "name": "MusafirEx.WEBView2Unity.Editor",
+  "rootNamespace": "MusafirEx.WEBView2Unity.Editor",
+  "references": [
+    "MusafirEx.WEBView2Unity"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": true
+}

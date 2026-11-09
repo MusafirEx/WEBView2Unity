@@ -1,0 +1,20 @@
+{
+  "name": "com.musafirex.webview2unity",
+  "displayName": "WEBView2Unity",
+  "version": "0.1.0",
+  "unity": "2022.3",
+  "description": "Experimental CEF browser for Unity Editor with shared Runtime API. Native binaries are not bundled.",
+  "author": {
+    "name": "MusafirEx",
+    "url": "https://github.com/MusafirEx"
+  },
+  "documentationUrl": "https://github.com/MusafirEx/WEBView2Unity",
+  "keywords": [
+    "webview",
+    "browser",
+    "cef",
+    "chromium",
+    "editor",
+    "upm"
+  ]
+}

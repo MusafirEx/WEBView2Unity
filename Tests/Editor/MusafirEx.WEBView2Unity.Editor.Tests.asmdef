@@ -1,0 +1,16 @@
+{
+  "name": "MusafirEx.WEBView2Unity.Editor.Tests",
+  "references": [
+    "MusafirEx.WEBView2Unity",
+    "MusafirEx.WEBView2Unity.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ]
+}
