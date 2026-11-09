@@ -17,6 +17,26 @@ for filename in (
     data = json.loads((ROOT / filename).read_text(encoding="utf-8"))
     assert data["name"].startswith("MusafirEx.WEBView2Unity")
 
+# All Unity-imported assets inside immutable Git packages need committed .meta files.
+all_unity_assets = [
+    Path("package.json"), Path("README.md"), Path("CHANGELOG.md"),
+    Path("Editor"), Path("Runtime"), Path("Tests"), Path("Tests/Editor"),
+    *Path("Editor").rglob("*.cs"), *Path("Editor").rglob("*.asmdef"),
+    *Path("Runtime").rglob("*.cs"), *Path("Runtime").rglob("*.asmdef"),
+    *Path("Tests").rglob("*.cs"), *Path("Tests").rglob("*.asmdef"),
+]
+guids = set()
+for asset in all_unity_assets:
+    meta = ROOT / (str(asset) + ".meta")
+    assert meta.exists(), f"Missing immutable Git package .meta: {asset}"
+    data = meta.read_text(encoding="utf-8")
+    match = re.search(r"(?m)^guid: ([0-9a-f]{32})$", data)
+    assert match, f"Invalid metadata GUID: {meta}"
+    assert match.group(1) not in guids, f"Duplicate Unity GUID: {match.group(1)}"
+    guids.add(match.group(1))
+    if (ROOT / asset).is_dir():
+        assert "folderAsset: yes" in data, f"Missing folderAsset in {meta}"
+
 native = (ROOT / "Native~/WebViewBridge.cpp").read_text(encoding="utf-8")
 interop = (ROOT / "Runtime/WebViewNative.cs").read_text(encoding="utf-8")
 exports = set(re.findall(r"__cdecl (W2U_\w+)\s*\(", native))
@@ -24,4 +44,4 @@ imports = set(re.findall(r"extern\s+\w+\s+(W2U_\w+)\s*\(", interop))
 assert len(exports) >= 15 and exports == imports, (
     f"C ABI mismatch: C++ only {exports - imports}; C# only {imports - exports}"
 )
-print("PASS: UPM package manifest, asmdefs and native C ABI method names")
+print(f"PASS: UPM manifest, asmdefs, {len(guids)} metadata GUIDs and native C ABI")
